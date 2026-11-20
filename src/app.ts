@@ -24,8 +24,12 @@ export function createApp() {
 
   app.use(helmet());
 
+  // FRONTEND_URL admite varios orígenes separados por coma.
   const allowedOrigins = new Set([
-    env.frontendUrl,
+    ...env.frontendUrl
+      .split(',')
+      .map((value) => value.trim().replace(/\/+$/, ''))
+      .filter(Boolean),
     'http://localhost:4200',
     'http://127.0.0.1:4200',
   ]);
@@ -35,8 +39,9 @@ export function createApp() {
       origin: (origin, callback) => {
         // Permitir herramientas locales sin origin (curl, Postman) y orígenes conocidos
         if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+        // No lanzamos error: evitamos un 500 y dejamos que el navegador bloquee la respuesta.
         logger.warn(`CORS bloqueado para origen: ${origin}`);
-        return callback(new Error('Origen no permitido por CORS'));
+        return callback(null, false);
       },
       credentials: true,
     }),
