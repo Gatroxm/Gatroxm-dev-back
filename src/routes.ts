@@ -5,11 +5,11 @@ import { isDatabaseConnected } from './config/database';
 
 const router = Router();
 
+// Liveness: el proceso está vivo aunque MongoDB aún no esté disponible.
 router.get('/health', (_req, res) => {
   const mongo = isDatabaseConnected() ? 'connected' : 'disconnected';
-  const ok = mongo === 'connected';
-  res.status(ok ? 200 : 503).json({
-    status: ok ? 'ok' : 'degraded',
+  res.status(200).json({
+    status: mongo === 'connected' ? 'ok' : 'degraded',
     uptime: Math.floor(process.uptime()),
     mongo,
     db: env.mongoDb,
