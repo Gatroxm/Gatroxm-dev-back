@@ -9,6 +9,7 @@ import { serialize, serializeMany } from '../../shared/serialize';
 import { ContactMessageModel } from './contact.model';
 import { contactMessageSchema } from './contact.validation';
 import { logger } from '../../shared/logger';
+import { sendContactNotification } from '../notifications/whatsapp.service';
 
 const router = Router();
 
@@ -43,6 +44,10 @@ router.post(
 
     if (!doc) throw new AppError(500, 'No se pudo guardar el mensaje');
     logger.info(`Nuevo mensaje de contacto de ${email}`);
+
+    // Notificación en segundo plano: no bloquea la respuesta del formulario.
+    void sendContactNotification({ name, email, subject, message });
+
     return res.status(201).json({ ok: true, id: String(doc._id) });
   }),
 );

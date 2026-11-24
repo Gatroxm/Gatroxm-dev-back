@@ -31,6 +31,21 @@ npm.cmd run dev      # http://localhost:3000
 | `AI_API_KEY` | Opcional. Clave para proveedor compatible con OpenAI |
 | `AI_BASE_URL` | Base URL del proveedor (default `https://api.openai.com/v1`) |
 | `AI_MODEL` | Modelo a usar (default `gpt-4o-mini`) |
+| `WHATSAPP_PROVIDER` | Opcional. `callmebot`, `ultramsg` o `telegram`. Vacío = sin notificaciones |
+| `WHATSAPP_PHONE` | Número destino con indicativo (ej. `+573133976999`) |
+| `WHATSAPP_API_KEY` | API key de CallMeBot |
+| `ULTRAMSG_INSTANCE` / `ULTRAMSG_TOKEN` | Credenciales de UltraMsg |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | Credenciales del bot de Telegram |
+
+## Notificaciones de contacto
+
+Cada mensaje guardado en `POST /api/contact` se notifica en segundo plano (no bloquea la respuesta del formulario). Si el envío falla, solo se registra un `warn`; el mensaje queda guardado igual.
+
+- **CallMeBot**: agrega el número del bot, envía `I allow callmebot to send me messages` y usa la API key que responde. Configura `WHATSAPP_PROVIDER=callmebot`, `WHATSAPP_PHONE` y `WHATSAPP_API_KEY`.
+- **UltraMsg**: crea la instancia, escanea el QR y usa `WHATSAPP_PROVIDER=ultramsg` con `ULTRAMSG_INSTANCE` y `ULTRAMSG_TOKEN`.
+- **Telegram**: crea un bot con @BotFather, obtén el `chat_id` y usa `WHATSAPP_PROVIDER=telegram` con `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID`.
+
+En Render, configura estas variables en el dashboard del servicio backend.
 
 ## Chatbot con IA
 
