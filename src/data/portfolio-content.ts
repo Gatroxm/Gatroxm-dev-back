@@ -45,7 +45,7 @@ export const profile = {
   ],
   title: "Desarrollador Full Stack Senior",
   location: "Bello, Antioquia (Colombia) · Trabajo remoto",
-  lead: "Más de 12 años construyendo aplicaciones web y móviles con .NET, Angular y Node.js, y hoy llevando los agentes de IA al desarrollo de software.",
+  lead: "Más de 12 años como desarrollador full stack; hoy con .NET, Angular y agentes de IA.",
 };
 
 export const stats: Stat[] = [

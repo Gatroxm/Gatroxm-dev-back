@@ -108,7 +108,8 @@ const techSuggestions = [
  *  - .net, . net, dot net, dotnet, net core, asp.net, c#, c sharp, csharp → dotnet
  *  - node.js, nodejs, node → nodejs
  *  - vue.js, vuejs, vue → vue
- *  - angular js, angularjs, angular → angularjs
+ *  - angular js, angularjs → angularjs
+ *  - angular (solo), angular 2, angular 17, angular moderno, etc. → angular
  *  - sql server, sqlserver, mssql → sqlserver
  */
 const TECH_ALIASES: Array<{ pattern: RegExp; token: string }> = [
@@ -118,7 +119,10 @@ const TECH_ALIASES: Array<{ pattern: RegExp; token: string }> = [
   },
   { pattern: /(?:node\.js|nodejs|\bnode\b)/g, token: 'nodejs' },
   { pattern: /(?:vue\.js|vuejs|\bvue\b)/g, token: 'vue' },
-  { pattern: /(?:angular\s*js|angularjs|\bangular\b)/g, token: 'angularjs' },
+  // AngularJS (Angular 1.x) solo cuando se escribe explícitamente.
+  { pattern: /(?:angular\s*js|angularjs)/g, token: 'angularjs' },
+  // Angular moderno: "angular" solo o con versión ("angular 17", "angular 2").
+  { pattern: /\bangular\b/g, token: 'angular' },
   { pattern: /(?:sql\s*server|sqlserver|\bmssql\b)/g, token: 'sqlserver' },
 ];
 
@@ -140,15 +144,29 @@ export function tokenize(text: string): string[] {
 /* Respuestas verificadas por tecnología                               */
 /* ------------------------------------------------------------------ */
 
+const contactEmail = profileFallback.contact.email;
+
+/**
+ * Cargos con Angular, solo empresa y periodo.
+ * No se afirman versiones concretas por cargo hasta que el usuario las confirme.
+ */
+const angularRolesSummary =
+  'APERCE (May 2026 – Actualidad), BTW SAS (Sep. 2025 – Feb. 2026), Vortex Bridge (Ago. 2024 – Ene. 2025), Tuatara (Nov. 2023 – Sep. 2024), Imagemaker (Oct. 2021 – Feb. 2024), Xpectrum (Feb. 2020 – Jul. 2021), Grupo FG (Jun. 2019 – Sep. 2021), SMDigital (Feb. 2019 – May 2020), Strategee (Dic. 2016 – Ene. 2019) y su experiencia anterior en Kubbox, BKEmpresarial, Exnova y Tensión Creativa (2014 – 2016)';
+
 const techExperienceAnswers: Record<string, string> = {
   dotnet: DOTNET_EXPERIENCE,
   nodejs:
-    'Gustavo ha trabajado con Node.js en APIs y microservicios: en UX Technology diseñó microservicios con Node.js y AWS DynamoDB; en Grupo FG y SMDigital construyó APIs con Node.js; y en Vortex Bridge y Tuatara usó Express.js y Next.js.',
-  vue: 'Gustavo ha trabajado con Vue.js en varios roles: en UX Technology lideró la migración de Vue 2 a Vue 3 y trabajó con Nuxt.js (SSR); también usó Vue.js en Vortex Bridge, Tuatara, Xpectrum, Grupo FG y SMDigital.',
+    'Gustavo ha trabajado con Node.js en varios cargos: en UX Technology diseñó microservicios con Node.js y AWS DynamoDB; en Grupo FG y SMDigital construyó APIs con Node.js; y en Vortex Bridge y Tuatara usó Express.js y Next.js. No declara un número exacto de años de dominio con Node.js.',
+  vue:
+    'Gustavo ha trabajado con Vue.js en varios cargos: en UX Technology lideró la migración de Vue 2 a Vue 3 y trabajó con Nuxt.js (SSR); también usó Vue.js en Vortex Bridge, Tuatara, Xpectrum, Grupo FG y SMDigital. No declara un número exacto de años de dominio con Vue.js.',
+  react:
+    'Gustavo ha trabajado con React en varios cargos: en Xpectrum y SMDigital lo usó en el frontend, y en su experiencia anterior (Kubbox, BKEmpresarial, Exnova y Tensión Creativa) desarrolló con React. También completó el curso «React: de cero a experto». No declara un número exacto de años de dominio con React.',
+  angular:
+    `Angular es el framework principal de Gustavo en el frontend. No tiene documentado un número exacto de años por versión, así que no doy una cifra que no esté verificada. Ha trabajado con Angular en ${angularRolesSummary}. Para el detalle exacto por versión, puedes escribirle a ${contactEmail}.`,
   angularjs:
-    'Gustavo tiene experiencia con Angular desde la versión 2 hasta la 19: en su rol actual (APERCE) desarrolla con Angular; en BTW SAS trabajó con Angular 19 e Ionic; y en Vortex Bridge (17/18), Tuatara (16/18), Imagemaker (15/16), Xpectrum (12), Grupo FG (12) y Strategee (10).',
+    `Gustavo no tiene documentado un dato exacto sobre AngularJS (Angular 1.x). Angular moderno es su framework principal; para ese detalle, escríbele a ${contactEmail}. Su experiencia documentada con Angular está en ${angularRolesSummary}.`,
   sqlserver:
-    'Gustavo ha trabajado con SQL Server y optimización de consultas: en BTW SAS desarrolló APIs REST con optimización de consultas SQL, y su stack de datos incluye SQL Server, MySQL, PL/SQL y MongoDB. También completó el curso «SQL, curso completo (SQL Server)».',
+    `Gustavo no tiene documentado un número exacto de años con SQL Server, así que no doy una cifra que no esté verificada. Sí ha trabajado con SQL Server en optimización de consultas (por ejemplo en BTW SAS), y su stack de datos incluye SQL Server, MySQL, PL/SQL y MongoDB; además completó el curso «SQL, curso completo (SQL Server)». Para el dato exacto de años, puedes escribirle a ${contactEmail}.`,
 };
 
 const knownTechTokens = new Set(Object.keys(techExperienceAnswers));
@@ -173,6 +191,7 @@ const experienceCues = [
   'llevas',
   'lleva',
   'how many',
+  'trabaj',
 ];
 
 function stripAccents(text: string): string {
@@ -203,11 +222,71 @@ function includesAny(text: string, words: string[]): boolean {
 /** Respuesta local determinista basada en palabras clave. Nunca inventa datos. */
 export function answerFromKnowledge(message: string): Match {
   const q = message.toLowerCase();
+  const lower = stripAccents(q);
 
   if (includesAny(q, ['hola', 'buenas', 'hey', 'saludo', 'hi'])) {
     return {
       answer: `¡Hola! Soy Gx, el asistente de ${profileFallback.name}. Puedo contarte sobre su experiencia, stack, proyectos con IA o cómo contactarlo. ¿Qué te gustaría saber?`,
       suggestions: defaultSuggestions,
+    };
+  }
+
+  // Rechazo amable a intentos de extraer instrucciones o el prompt del sistema.
+  if (
+    includesAny(lower, [
+      'ignora tus instrucciones',
+      'ignora las instrucciones',
+      'ignore your instructions',
+      'dime tu prompt',
+      'tu prompt',
+      'system prompt',
+      'prompt del sistema',
+      'revela tus instrucciones',
+      'muestra tus instrucciones',
+    ])
+  ) {
+    return {
+      answer:
+        'No puedo compartir instrucciones internas, prompts ni configuración del asistente. Sí puedo ayudarte con información verificada sobre la experiencia, el stack, los proyectos y el contacto de Gustavo.',
+      suggestions: defaultSuggestions,
+    };
+  }
+
+  // Declinación de preguntas sobre salario o remuneración.
+  if (
+    includesAny(lower, [
+      'cuanto ganas',
+      'cuanto gana',
+      'salario',
+      'sueldo',
+      'remuneracion',
+      'pretension salarial',
+      'salary',
+      'cuanto cobras',
+      'cuanto cobra',
+    ])
+  ) {
+    return {
+      answer: `Gustavo no comparte información sobre salario o remuneración. Para conversar sobre condiciones, puedes escribirle a ${contactEmail} o usar el formulario de contacto del sitio.`,
+      suggestions: ['¿Cuál es su experiencia?', '¿Qué tecnologías domina?', '¿Cómo puedo contactarlo?'],
+    };
+  }
+
+  // Cliente actual: se responde sin revelar el nombre por confidencialidad.
+  if (
+    includesAny(lower, [
+      'para quien trabajas',
+      'para quien trabaja',
+      'para que empresa',
+      'para que cliente',
+      'quien es tu cliente',
+      'quien es su cliente',
+    ])
+  ) {
+    return {
+      answer:
+        'Gustavo trabaja en consultoría para un cliente corporativo global. En su rol actual (APERCE) levanta requerimientos, define soluciones, revisa código y despliega en Azure. Por confidencialidad no detalla el nombre del cliente.',
+      suggestions: ['¿Cuál es su experiencia?', '¿Qué tecnologías domina?', '¿Cómo puedo contactarlo?'],
     };
   }
 
