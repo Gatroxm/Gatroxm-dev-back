@@ -9,7 +9,8 @@
     "build": "node ./node_modules/typescript/bin/tsc -v && node ./node_modules/typescript/bin/tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "seed": "tsx src/scripts/seed.ts",
-    "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit"
+    "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
@@ -28,7 +29,8 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": "20.x"
