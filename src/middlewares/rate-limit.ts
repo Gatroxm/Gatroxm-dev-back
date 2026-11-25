@@ -33,3 +33,11 @@ export const chatLimiter = rateLimit({
   legacyHeaders: false,
   message: { ok: false, error: 'Límite de mensajes del asistente alcanzado. Intenta más tarde.' },
 });
+
+export const reactionLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 40,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { ok: false, error: 'Demasiadas reacciones. Espera unos minutos e intenta de nuevo.' },
+});

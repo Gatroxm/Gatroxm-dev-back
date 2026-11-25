@@ -47,6 +47,15 @@ Cada mensaje guardado en `POST /api/contact` se notifica en segundo plano (no bl
 
 En Render, configura estas variables en el dashboard del servicio backend.
 
+## Reacciones del blog
+
+Cada publicación acepta seis reacciones (like, love, haha, wow, sad, angry). El visitante se identifica con un ID anónimo guardado en su navegador, así que solo cuenta una vez por publicación y puede cambiar o quitar su reacción.
+
+- `GET /api/blog/:slug/reactions?visitorId=...` — conteos, total y la reacción del visitante.
+- `POST /api/blog/:slug/reactions` — body `{ "visitorId": "...", "type": "like" }`. Repetir el mismo tipo la quita.
+- Los listados (`/api/blog` y `/api/blog/admin/all`) incluyen `reactions: { counts, total }`.
+- La IP se guarda solo como hash y el endpoint tiene rate limit.
+
 ## Chatbot con IA
 
 - `POST /api/chat` usa `AI_API_KEY` si está configurada (OpenAI, Groq, OpenRouter u Ollama con API compatible según `AI_BASE_URL`).
